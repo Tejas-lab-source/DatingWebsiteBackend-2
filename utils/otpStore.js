@@ -37,7 +37,7 @@ function issue(email, purpose) {
   }
 
   const otp = String(crypto.randomInt(100000, 1000000));
-
+  console.log(otp)
   store.set(k, {
     hash: hash(otp),
     expiresAt: Date.now() + TTL_MS,
