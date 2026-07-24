@@ -1,6 +1,5 @@
 const nodemailer = require('nodemailer');
 
-
 console.log("EMAIL_USER:", process.env.EMAIL_USER);
 console.log("GMAIL_PASS:", process.env.GMAIL_PASS ? "Loaded" : "Missing");
 
@@ -8,9 +7,23 @@ const transporter = nodemailer.createTransport({
   host: process.env.GMAIL_HOST || 'smtp.gmail.com',
   port: Number(process.env.GMAIL_PORT || 587),
   secure: false,
-  auth: { user: process.env.EMAIL_USER, pass: process.env.GMAIL_PASS },
-  pool: true,          // reuse the SMTP connection instead of reconnecting
+  auth: {
+    user: process.env.EMAIL_USER,
+    pass: process.env.GMAIL_PASS,
+  },
+  pool: true,
   maxConnections: 3,
+});
+
+// ADD THIS BLOCK
+transporter.verify((err, success) => {
+  if (err) {
+    console.error("========== SMTP VERIFY ERROR ==========");
+    console.error(err);
+    console.error("=======================================");
+  } else {
+    console.log("✅ SMTP server is ready");
+  }
 });
 
 function otpTemplate(otp) {
@@ -23,11 +36,6 @@ function otpTemplate(otp) {
   </div>`;
 }
 
-/**
- * Note: this is intentionally NOT awaited by the controllers.
- * Your old code awaited sendMail AND passed a callback, which meant the
- * HTTP response waited ~2s on Gmail's SMTP handshake on every OTP request.
- */
 async function sendOtpEmail(to, otp) {
   return transporter.sendMail({
     from: `"JIIT Connections" <${process.env.EMAIL_USER}>`,
