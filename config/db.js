@@ -14,11 +14,13 @@ module.exports = async function connectDB() {
     });
     console.log('[db] connected');
   } catch (err) {
-    console.error('[db] connection failed:', err.message);
-    // Your old version swallowed this and let the server boot with no DB,
-    // so every request 500'd with a confusing error.
-    process.exit(1);
-  }
+  console.error("===== MONGODB ERROR =====");
+  console.error(err);
+  console.error("Error name:", err.name);
+  console.error("Error message:", err.message);
+  console.error("Error cause:", err.cause);
+  process.exit(1);
+}
 
   mongoose.connection.on('disconnected', () => console.warn('[db] disconnected'));
 };
