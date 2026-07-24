@@ -36,8 +36,9 @@ const sendSignupOtp = asyncHandler(async (req, res) => {
   if (error) throw new ApiError(429, error);
 
   // Fire and forget — do not make the user wait on Gmail's SMTP handshake.
-  sendOtpEmail(email, otp).catch((e) => console.error('[mail] signup otp', e.message));
-
+sendOtpEmail(email, otp).catch((e) => {
+  console.error("SMTP ERROR:", e);
+});
   res.json({ success: true, message: 'Verification code sent' });
 });
 
@@ -53,8 +54,9 @@ const sendResetOtp = asyncHandler(async (req, res) => {
   if (exists) {
     const { otp, error } = otpStore.issue(email, 'reset');
     if (error) throw new ApiError(429, error);
-    sendOtpEmail(email, otp).catch((e) => console.error('[mail] reset otp', e.message));
-  }
+sendOtpEmail(email, otp).catch((e) => {
+  console.error("SMTP ERROR:", e);
+});  }
 
   res.json({ success: true, message: 'If that account exists, a code has been sent' });
 });
