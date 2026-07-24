@@ -38,7 +38,11 @@ app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }));
 app.use(compression()); // gzip — noticeably smaller JSON payloads
 app.use(
   cors({
-    origin: "*",
+    origin: [
+      "http://localhost:5173",
+      "https://datingwebsitefrontend-2.onrender.com"
+    ],
+    credentials: true,
   })
 );
 app.use(express.json({ limit: '1mb' }));
