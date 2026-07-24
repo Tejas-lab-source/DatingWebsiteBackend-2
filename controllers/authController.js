@@ -24,6 +24,24 @@ function assertEmailAllowed(email) {
 }
 
 /** POST /auth/otp/signup — send a code to a NEW email */
+// const sendSignupOtp = asyncHandler(async (req, res) => {
+//   const email = normalise(req.body.email);
+//   assertEmailAllowed(email);
+
+//   if (await User.exists({ email })) {
+//     throw new ApiError(409, 'An account with this email already exists');
+//   }
+
+//   const { otp, error } = otpStore.issue(email, 'signup');
+//   if (error) throw new ApiError(429, error);
+
+//   // Fire and forget — do not make the user wait on Gmail's SMTP handshake.
+// sendOtpEmail(email, otp).catch((e) => {
+//   console.error("SMTP ERROR:", e);
+// });
+//   res.json({ success: true, message: 'Verification code sent' });
+// });
+
 const sendSignupOtp = asyncHandler(async (req, res) => {
   const email = normalise(req.body.email);
   assertEmailAllowed(email);
@@ -35,13 +53,15 @@ const sendSignupOtp = asyncHandler(async (req, res) => {
   const { otp, error } = otpStore.issue(email, 'signup');
   if (error) throw new ApiError(429, error);
 
-  // Fire and forget — do not make the user wait on Gmail's SMTP handshake.
-sendOtpEmail(email, otp).catch((e) => {
-  console.error("SMTP ERROR:", e);
-});
+  try {
+    await sendOtpEmail(email, otp);
+  } catch (e) {
+    console.error('[mail] signup OTP failed:', e.message);
+    throw new ApiError(502, "We couldn't send your code right now. Try again in a minute.");
+  }
+
   res.json({ success: true, message: 'Verification code sent' });
 });
-
 /** POST /auth/otp/reset — send a code to an EXISTING email */
 const sendResetOtp = asyncHandler(async (req, res) => {
   const email = normalise(req.body.email);
@@ -51,12 +71,11 @@ const sendResetOtp = asyncHandler(async (req, res) => {
 
   // Deliberately vague: telling the caller "no such account" lets anyone
   // enumerate which emails are registered on your site.
-  if (exists) {
+if (exists) {
     const { otp, error } = otpStore.issue(email, 'reset');
     if (error) throw new ApiError(429, error);
-sendOtpEmail(email, otp).catch((e) => {
-  console.error("SMTP ERROR:", e);
-});  }
+    sendOtpEmail(email, otp).catch((e) => console.error('[mail] reset OTP failed:', e.message));
+  }
 
   res.json({ success: true, message: 'If that account exists, a code has been sent' });
 });
