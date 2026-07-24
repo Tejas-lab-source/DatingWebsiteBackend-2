@@ -38,11 +38,7 @@ app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }));
 app.use(compression()); // gzip — noticeably smaller JSON payloads
 app.use(
   cors({
-    origin(origin, cb) {
-      if (!origin || allowedOrigins.includes(origin)) return cb(null, true);
-      cb(new Error('Not allowed by CORS'));
-    },
-    credentials: true,
+    origin: "*",
   })
 );
 app.use(express.json({ limit: '1mb' }));
